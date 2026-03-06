@@ -21,7 +21,10 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-origins = ["http://localhost:3000", "https://casebot-q1hx.vercel.app/"]
+origins = [
+    "http://localhost:3000",
+    "https://casebot-q1hx.vercel.app",
+]
 
 app.add_middleware(
     CORSMiddleware,
