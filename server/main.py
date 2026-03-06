@@ -35,35 +35,12 @@ app.include_router(AUTH_ROUTER, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(USER_ROUTER, prefix="/api/v1/users", tags=["users"])
 app.include_router(CASE_ROUTER, prefix="/api/v1/cases", tags=["cases"])
 
-
-def create_tables_with_retry(retries: int = 5, delay: int = 3) -> None:
-    """
-    Attempt to create all DB tables, retrying on connection failure.
-    Railway provisions the DB asynchronously, so the app may start
-    before Postgres is fully ready.
-    """
-    for attempt in range(1, retries + 1):
-        try:
-            logger.info(f"Attempting to create tables (attempt {attempt}/{retries})...")
-            SQLModel.metadata.create_all(engine)
-            logger.info("Tables created (or already exist). DB is ready.")
-            return
-        except OperationalError as e:
-            logger.warning(f"DB not ready yet: {e}")
-            if attempt < retries:
-                logger.info(f"Retrying in {delay}s...")
-                time.sleep(delay)
-            else:
-                logger.error("Could not connect to the database after all retries.")
-                raise RuntimeError(
-                    "Failed to connect to the database on startup. "
-                    "Check your DATABASE_URL and that Postgres is running."
-                ) from e
+SQLModel.metadata.create_all(engine)
 
 
-@app.on_event("startup")
-def on_startup():
-    create_tables_with_retry()
+@app.get("/")
+def health_check():
+    return {"status": "success", "message": "sever running"}
 
 
 @app.exception_handler(AppException)
