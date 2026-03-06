@@ -6,7 +6,7 @@ import { SquareArrowOutUpRight } from "lucide-react";
 
 export default function CaseTable({ cases }) {
   return (
-    <Box className="w-2xl m-2">
+    <Box className="w-full m-2">
       <Table aria-label="table variants">
         <thead>
           <tr>

@@ -18,7 +18,7 @@ export default async function CasesLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${poppins.className} antialiased`}>
-        <div className="flex min-h-screen bg-zinc-50 font-sans text-zinc-950 dark:bg-black dark:text-zinc-50">
+        <div className="flex min-h-screen bg-zinc-50 font-sans text-zinc-950 ">
           <Providers session={session}>{children}</Providers>
         </div>
       </body>

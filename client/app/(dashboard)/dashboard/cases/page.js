@@ -43,11 +43,11 @@ export default function CasesPage() {
   const [openModal, setOpenModal] = useState(false);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen w-5xl flex-1 bg-white">
       {openModal && (
         <CreateCaseModal openModal={openModal} setOpenModal={setOpenModal} />
       )}
-      <div className="p-6 max-w-5xl mx-auto">
+      <div className="p-6 max-w-5xl mx-auto w-full">
         <div className="mb-6 flex items-cente justify-between">
           <div>
             <h1 className="text-2xl font-bold text-blue-800 tracking-tight">
@@ -74,8 +74,10 @@ export default function CasesPage() {
           <Button onClick={() => setOpenModal(true)}>Create new case</Button>
         </div>
 
-        <div>
-          {!isLoading && (
+        <div className="w-full">
+          {isLoading ? (
+            <div>Loading...</div>
+          ) : (
             <>
               <CaseTable cases={filteredCases} />
               <p className="mt-3 text-sm text-black font-normal">

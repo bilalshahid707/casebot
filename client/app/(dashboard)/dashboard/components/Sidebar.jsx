@@ -8,7 +8,7 @@ export default function Sidebar({ user }) {
   const pathname = usePathname();
   const displayName = user?.username || user?.name || "User";
   return (
-    <aside className="flex w-64 flex-col bg-blue-800 p-4">
+    <aside className="flex w-64 flex-col bg-blue-800 p-4 ">
       {/* User row */}
       <div className="mb-4 flex items-center gap-3 rounded-md bg-blue-700 p-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-md font-bold text-blue-800 ">

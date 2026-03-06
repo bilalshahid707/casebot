@@ -19,7 +19,7 @@ from schemas.error_schemas import ErrorResponse
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI()
+app = FastAPI(redirect_slashes=False)
 
 origins = [
     "http://localhost:3000",
