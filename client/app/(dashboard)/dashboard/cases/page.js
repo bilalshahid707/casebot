@@ -19,7 +19,7 @@ export default function CasesPage() {
     queryKey: ["cases"],
     queryFn: async () => {
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/cases`,
+        `${process.env.NEXT_PUBLIC_API_URL}/cases/`,
         {
           headers: {
             Authorization: `Bearer ${session?.data?.accessToken}`,
@@ -43,7 +43,7 @@ export default function CasesPage() {
   const [openModal, setOpenModal] = useState(false);
 
   return (
-    <div className="min-h-screen w-5xl flex-1 bg-white">
+    <div className="max-h-screen w-full flex-1 bg-white">
       {openModal && (
         <CreateCaseModal openModal={openModal} setOpenModal={setOpenModal} />
       )}

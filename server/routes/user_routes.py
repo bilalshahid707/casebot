@@ -12,9 +12,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 router = APIRouter()
 
 
-@router.get(
-    "/me/", response_model=ReadUser, status_code=200, summary="get current user"
-)
+@router.get("/me", response_model=ReadUser, status_code=200, summary="get current user")
 def get_me(
     current_user: Annotated[User, Depends(AuthDependencies.get_current_user)],
 ):

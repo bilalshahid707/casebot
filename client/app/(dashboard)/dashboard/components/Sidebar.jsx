@@ -33,16 +33,6 @@ export default function Sidebar({ user }) {
         >
           <span>Cases</span>
         </Link>
-        <Link
-          href="/dashboard/paralegals"
-          className={`${
-            pathname === "/dashboard/paralegals"
-              ? "bg-blue-600 text-white"
-              : "text-blue-100 hover:bg-blue-700 hover:text-white"
-          } flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition`}
-        >
-          <span>Paralegals</span>
-        </Link>
       </nav>
 
       {/* Sign out at bottom */}

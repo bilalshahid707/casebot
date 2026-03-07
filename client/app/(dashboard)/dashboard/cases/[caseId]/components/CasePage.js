@@ -13,7 +13,7 @@ export default function CasePage({ caseId, caseData }) {
   const session = useSession();
 
   return (
-    <div className="flex max-h-screen bg-white font-sans text-gray-900">
+    <div className="flex h-screen bg-white font-sans text-gray-900">
       {/* Sidebar */}
       <aside className="flex w-72 flex-col border-r border-gray-200 bg-gray-50 px-6 py-6 overflow-y-auto max-h-full">
         <div className="mb-6 rounded-lg bg-white p-4 shadow-sm border border-gray-200">
@@ -93,7 +93,9 @@ export default function CasePage({ caseId, caseData }) {
         </div>
       </aside>
 
-      <ChatInterface caseId={caseId} />
+      <div className="flex-1">
+        <ChatInterface caseId={caseId} />
+      </div>
     </div>
   );
 }

@@ -29,19 +29,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             `${process.env.NEXT_PUBLIC_API_URL}/auth/signin`,
             formData,
           );
-          console.log(data);
           if (!data?.user) throw new InvalidCredentialsError();
           return {
             id: String(data?.user.id),
             username: data?.user.username,
             accessToken: data?.access_token,
-            accessTokenExpires: data?.access_token_expires,
           };
         } catch (error) {
           if (error instanceof CredentialsSignin) throw error;
 
           const status = error?.response?.status;
-          if (Number(status) === 401 || status === 403) {
+          if (status === 401 || status === 403 || status === 404) {
             throw new InvalidCredentialsError();
           }
           throw new ServerError();
@@ -58,19 +56,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: user.id,
           username: user.username,
           accessToken: user.accessToken,
-          accessTokenExpires: token.exp,
         };
-      }
-
-      try {
-        await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
-          headers: { Authorization: `Bearer ${token.accessToken}` },
-        });
-      } catch {
-        return null;
-      }
-      if (Math.floor(Date.now() / 1000) > token?.exp) {
-        return null;
       }
 
       return token;
@@ -78,7 +64,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
     async session({ session, token }) {
       // If jwt returned null, token will be empty — session will be invalid
-      if (!token?.accessToken) return session;
+      if (!token?.accessToken) return null;
 
       session.user = session.user || {};
       session.user.id = token.id;

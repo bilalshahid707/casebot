@@ -79,7 +79,7 @@ export default function ChatInterface({ caseId }) {
     chatMutation.mutate(text);
   };
   return (
-    <main className="flex flex-1 flex-col bg-white">
+    <div className="flex h-full w-full flex-col bg-white">
       <header className="flex items-center justify-between border-b border-gray-200 bg-white px-8 py-5 shadow-sm">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Case Chat</h1>
@@ -90,8 +90,8 @@ export default function ChatInterface({ caseId }) {
         </div>
       </header>
 
-      <section className="flex-1 min-h-screen overflow-y-auto bg-gray-50 px-8 py-6">
-        <div className="mx-auto flex h-full max-w-3xl flex-col gap-4">
+      <section className="flex-1 overflow-y-auto bg-gray-50 px-8 py-6">
+        <div className="flex flex-col gap-4 w-full">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full text-center">
               <div className="text-4xl mb-4">💬</div>
@@ -157,12 +157,11 @@ export default function ChatInterface({ caseId }) {
           )}
         </div>
       </section>
-
       <form
         onSubmit={handleSubmit}
         className="border-t border-gray-200 bg-white px-8 py-5 shadow-lg"
       >
-        <div className="mx-auto flex max-w-3xl items-end gap-3">
+        <div className="flex w-full items-end gap-3">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -178,6 +177,6 @@ export default function ChatInterface({ caseId }) {
           </button>
         </div>
       </form>
-    </main>
+    </div>
   );
 }
