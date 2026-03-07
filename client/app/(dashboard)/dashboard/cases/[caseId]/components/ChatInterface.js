@@ -1,18 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { Ellipsis, Divide } from "lucide-react";
 
 export default function ChatInterface({ caseId }) {
+  const queryClient = useQueryClient();
   const session = useSession();
-  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [chatError, setChatError] = useState("");
 
-  const { data: conversation, isPending } = useQuery({
+  const { data: messages = [], isPending } = useQuery({
     queryKey: [caseId, "chats"],
     queryFn: async () => {
       const response = await axios.get(
@@ -23,8 +23,7 @@ export default function ChatInterface({ caseId }) {
           },
         },
       );
-      setMessages(response.data.data);
-      return response.data;
+      return response.data.data;
     },
   });
 
@@ -33,36 +32,24 @@ export default function ChatInterface({ caseId }) {
       const { data } = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/cases/${caseId}/chat`,
         { message },
-        {
-          headers: {
-            Authorization: `Bearer ${session?.data?.accessToken}`,
-          },
-        },
+        { headers: { Authorization: `Bearer ${session?.data?.accessToken}` } },
       );
       return data;
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (data) => {
       setChatError("");
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content: data?.reply || "Response received from backend.",
-        },
+      queryClient.setQueryData([caseId, "chats"], (old) => [
+        ...old,
+        { id: crypto.randomUUID(), role: "assistant", content: data?.reply },
       ]);
     },
-    onError: (error, variables) => {
+    onError: (error) => {
       setChatError(
         error?.response?.data?.message ||
           error?.response?.data?.detail ||
           error?.message ||
           "Failed to send message.",
       );
-      setMessages((prev) => [
-        ...prev,
-        { id: Date.now(), role: "user", content: variables },
-      ]);
     },
   });
 
@@ -70,10 +57,13 @@ export default function ChatInterface({ caseId }) {
     event.preventDefault();
     if (!input.trim() || chatMutation.isPending) return;
     const text = input.trim();
-    setMessages((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), role: "user", content: input },
+
+    // Add user message directly to query cache
+    queryClient.setQueryData([caseId, "chats"], (old) => [
+      ...(old ?? []),
+      { id: crypto.randomUUID(), role: "user", content: text },
     ]);
+
     setInput("");
     setChatError("");
     chatMutation.mutate(text);

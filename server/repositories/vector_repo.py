@@ -37,7 +37,7 @@ def query_vectors(embedding: list, case_id: int):
     try:
         results = index.query(
             vector=embedding,
-            top_k=5,
+            top_k=25,
             include_metadata=True,
             filter={"case_id": int(case_id)},
         )
