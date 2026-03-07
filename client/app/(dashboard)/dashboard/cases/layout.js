@@ -6,6 +6,7 @@ import "@/app/globals.css";
 const poppins = Poppins({
   subsets: ["latin"],
   weight: ["300", "400", "700"],
+  variable: "--font-poppins",
 });
 
 export const metadata = {
@@ -17,7 +18,7 @@ export default async function CasesLayout({ children }) {
   const session = await auth();
   return (
     <html lang="en">
-      <body className={`${poppins.className} antialiased`}>
+      <body className={`${poppins.variable} antialiased`}>
         <div className="flex max-h-screen font-sans text-zinc-950 ">
           <Providers session={session}>{children}</Providers>
         </div>

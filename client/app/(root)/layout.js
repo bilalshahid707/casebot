@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 
 const poppins = Poppins({
   weight: ["300", "400", "700"],
+  variable: "--font-poppins",
 });
 
 export const metadata = {
@@ -17,7 +18,7 @@ export default async function RootLayout({ children }) {
   const session = await auth();
   return (
     <html lang="en">
-      <body className={`${poppins.className} antialiased`}>
+      <body className={`${poppins.variable} antialiased`}>
         <Providers session={session}>
           <Header />
           {children}

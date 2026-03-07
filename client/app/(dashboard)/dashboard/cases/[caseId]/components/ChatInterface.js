@@ -5,10 +5,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { Ellipsis, Divide } from "lucide-react";
-
+import { useId } from "react";
 export default function ChatInterface({ caseId }) {
   const queryClient = useQueryClient();
   const session = useSession();
+  const uid = useId();
   const [input, setInput] = useState("");
   const [chatError, setChatError] = useState("");
 
@@ -27,6 +28,8 @@ export default function ChatInterface({ caseId }) {
     },
   });
 
+  console.log(messages);
+
   const chatMutation = useMutation({
     mutationFn: async (message) => {
       const { data } = await axios.post(
@@ -40,7 +43,7 @@ export default function ChatInterface({ caseId }) {
       setChatError("");
       queryClient.setQueryData([caseId, "chats"], (old) => [
         ...old,
-        { id: crypto.randomUUID(), role: "assistant", content: data?.reply },
+        { id: `${uid}-${Date.now()}`, role: "assistant", content: data?.reply },
       ]);
     },
     onError: (error) => {
@@ -61,7 +64,7 @@ export default function ChatInterface({ caseId }) {
     // Add user message directly to query cache
     queryClient.setQueryData([caseId, "chats"], (old) => [
       ...(old ?? []),
-      { id: crypto.randomUUID(), role: "user", content: text },
+      { id: `${uid}-${Date.now()}`, role: "user", content: text },
     ]);
 
     setInput("");
@@ -92,9 +95,9 @@ export default function ChatInterface({ caseId }) {
             </div>
           )}
 
-          {messages.map((message) => (
+          {messages.map((message, index) => (
             <div
-              key={message.id}
+              key={message.id ?? index}
               className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
@@ -111,20 +114,23 @@ export default function ChatInterface({ caseId }) {
                       : ""
                   }`}
                 >
-                  {message.content}
+                  {message.content?.response ?? message.content}
                 </p>
 
                 <div>
-                  {message?.citations?.length > 0 && (
+                  {(message?.content?.citations ?? message?.citations)?.length >
+                    0 && (
                     <ol>
-                      {message.citations.map((citation, index) => (
-                        <li className="text-zinc-600" key={index}>
-                          {`source: ${citation.source}`}
-                          {citation.page !== 0
-                            ? `, page: ${citation.page}`
-                            : ""}
-                        </li>
-                      ))}
+                      {(message?.content?.citations ?? message?.citations).map(
+                        (citation, index) => (
+                          <li className="text-zinc-600" key={index}>
+                            {`source: ${citation.source}`}
+                            {citation.page !== 0
+                              ? `, page: ${citation.page}`
+                              : ""}
+                          </li>
+                        ),
+                      )}
                     </ol>
                   )}
                 </div>
