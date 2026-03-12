@@ -17,7 +17,7 @@ export const Header = () => {
         </Link>
 
         <nav className="flex items-center gap-2 relative">
-          {session.status === "authenticated" ? (
+          {session && session.status === "authenticated" ? (
             <>
               <button
                 onClick={() => setOpenDropdown((prev) => !prev)}
