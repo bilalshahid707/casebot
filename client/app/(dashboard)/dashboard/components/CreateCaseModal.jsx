@@ -27,7 +27,7 @@ export default function CreateCaseModal({ openModal, setOpenModal }) {
   const mutation = useMutation({
     mutationFn: async (caseData) => {
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/cases`,
+        `${process.env.NEXT_PUBLIC_API_URL}/cases/`,
         caseData,
         {
           headers: {
