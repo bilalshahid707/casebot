@@ -66,6 +66,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // If jwt returned null, token will be empty — session will be invalid
       if (!token?.accessToken) return null;
 
+      // Since the session has its own expiry so we are validating user with the token on backend to make the session null
+      try {
+        const { data } = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/users/me`,
+          {
+            headers: { Authorization: `Bearer ${token.accessToken}` },
+          },
+        );
+      } catch {
+        return null;
+      }
+
       session.user = session.user || {};
       session.user.id = token.id;
       session.user.username = token.username;

@@ -4,6 +4,7 @@ import os
 from openai import OpenAI
 from base64 import b64encode
 from .instructions import OCR_SYSTEM_INSTRUCTION
+from core.llm_client import client as LLMClient
 
 load_dotenv()
 
@@ -12,13 +13,10 @@ class OCRAgent:
 
     def __init__(self, api_key: Optional[str] = None):
 
-        self.client = OpenAI(
-            api_key=os.environ.get("GEMINI_API_KEY"),
-            base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
-        )
+        self.client = LLMClient
         self.model = "gemini-2.5-flash"
 
-    async def extract_text(self, file) -> str:
+    def extract_text(self, file) -> str:
 
         response = self.client.chat.completions.create(
             model=self.model,

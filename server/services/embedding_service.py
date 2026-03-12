@@ -1,15 +1,22 @@
 from sqlmodel import Session
-
 from core.llm_client import client as LLMClient
 from helpers.text_splitter import text_splitter
 from repositories import vector_repo
+from .insight_service import get_entity_relationship
 from services import case_service
+from fastapi import BackgroundTasks
 
 
-async def process_and_store_embeddings(
-    file, case_id: int, asset_id: int, session: Session
+def process_and_store_embeddings(
+    file,
+    case_id: int,
+    asset_id: int,
+    session: Session,
+    background_tasks: BackgroundTasks,
 ):
-    chunks = await text_splitter(file)
+
+    # File object is coming from case dependency that will be used by text splitter
+    chunks = text_splitter(file)
 
     response = LLMClient.embeddings.create(
         model="gemini-embedding-001",
@@ -17,7 +24,15 @@ async def process_and_store_embeddings(
     )
 
     vector_repo.upsert_vectors(
-        chunks=chunks, case_id=case_id, asset_id=asset_id, file=file, response=response
+        chunks=chunks,
+        case_id=case_id,
+        asset_id=asset_id,
+        response=response,
     )
+
+    case_service.update_asset(
+        asset_data={"status": "processed"}, asset_id=asset_id, session=session
+    )
+    background_tasks.add_task(get_entity_relationship, case_id, session)
 
     return {"status": "success"}

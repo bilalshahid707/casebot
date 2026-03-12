@@ -31,7 +31,7 @@ class ResponseModel(BaseModel):
 
 
 class SummarizerAgent:
-    async def extract_text(self, file_urls):
+    def extract_text(self, file_urls):
         files = []
         for url in file_urls:
             response = s3.get_object(Bucket="casebot", Key=url.split("/")[-1])
@@ -44,7 +44,7 @@ class SummarizerAgent:
             file["content"] = io.BytesIO(file["content"])
 
             if file["content_type"].startswith("image/"):
-                text += await OCRAgent().extract_text(file["content"])
+                text += OCRAgent().extract_text(file["content"])
 
             elif file["content_type"] == "application/pdf":
                 pdf = PdfReader(file["content"])

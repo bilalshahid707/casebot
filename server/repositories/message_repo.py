@@ -19,7 +19,7 @@ def create_message(
     return new_message
 
 
-def get_messages_by_caseId(session: Session, case_id: int):
+def get_messages_by_case_id(session: Session, case_id: int):
     stmt = select(Message).where(Message.case_id == case_id).order_by(Message.id.asc())
     messages = session.exec(stmt).all()
     return messages

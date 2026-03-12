@@ -19,4 +19,4 @@ def reply(session: Session, case_id: int, message: str):
 
 
 def get_case_conversation(session: Session, case_id: int):
-    return message_repo.get_messages_by_caseId(session=session, case_id=case_id)
+    return message_repo.get_messages_by_case_id(session=session, case_id=case_id)

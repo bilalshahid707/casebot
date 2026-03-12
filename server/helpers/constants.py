@@ -6,6 +6,5 @@ allowed_file_formats = set(
         "image/jpeg",
         "image/png",
         "image/webp",
-        "image/gif",
     ]
 )

@@ -38,6 +38,7 @@ app.include_router(AUTH_ROUTER, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(USER_ROUTER, prefix="/api/v1/users", tags=["users"])
 app.include_router(CASE_ROUTER, prefix="/api/v1/cases", tags=["cases"])
 
+# SQLModel.metadata.drop_all(engine)
 SQLModel.metadata.create_all(engine)
 
 

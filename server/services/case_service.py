@@ -1,10 +1,10 @@
 from pydoc import doc
 
-from fastapi import status
+from fastapi import status, BackgroundTasks
 from sqlmodel import Session
 from dotenv import load_dotenv
 import os
-from schemas.case_schemas import CaseCreate, CaseUpdate
+from schemas.case_schemas import CaseCreate, CaseUpdate, AssetUpdate
 from repositories import case_repo
 from core.s3 import s3
 from services import embedding_service as EmbeddingService
@@ -23,15 +23,15 @@ def create_case(case_data: CaseCreate, session: Session, current_user):
             message="Only attorneys can create cases",
         )
 
-    return case_repo.create_case(session, case_data, current_user)
+    return case_repo.create_case(session, case_data, current_user.id)
 
 
 def get_case_by_Id(case_id: int, session: Session):
     return case_repo.get_case_by_id(session, case_id)
 
 
-def get_cases_by_userId(user_id: int, session: Session):
-    return case_repo.get_cases_by_userId(session, user_id)
+def get_cases_by_user_id(user_id: int, session: Session):
+    return case_repo.get_cases_by_user_id(session, user_id)
 
 
 def update_case(case_id: int, case_data: CaseUpdate, session: Session):
@@ -66,18 +66,22 @@ def get_case_assets(case_id: int, session: Session):
     return case_repo.get_case_assets(session=session, case_id=case_id)
 
 
-async def process_case_asset(
+def update_asset(asset_id: int, session: Session, asset_data: AssetUpdate):
+    return case_repo.update_asset(
+        session=session, asset_data=asset_data, asset_id=asset_id
+    )
+
+
+def process_case_asset(
     case_id: int,
     asset_id: int,
     file,
     session: Session,
+    background_tasks: BackgroundTasks,
 ):
     try:
-        await EmbeddingService.process_and_store_embeddings(
-            file,
-            case_id,
-            asset_id,
-            session,
+        EmbeddingService.process_and_store_embeddings(
+            file, case_id, asset_id, session, background_tasks
         )
     except Exception as e:
         raise AppException(

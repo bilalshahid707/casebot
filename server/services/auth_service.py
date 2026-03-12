@@ -8,7 +8,7 @@ from helpers.security import create_access_token, get_password_hash, verify_pass
 from repositories import user_repo
 from schemas.auth_schemas import TokenUserResponse
 from schemas.user_schemas import ReadUser
-from core.exceptions import AppException
+from core.exceptions import AppException, UnauthorizedException
 from fastapi import status
 
 load_dotenv()
@@ -17,10 +17,8 @@ load_dotenv()
 def user_signin(session, formdata):
     user = user_repo.get_user_by_username(session, formdata.username)
     if not user or not verify_password(formdata.password, user.password):
-        raise AppException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            message="Incorrect username or password",
-        )
+        raise UnauthorizedException()
+
     access_token_expires = timedelta(
         minutes=int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES"))
     )

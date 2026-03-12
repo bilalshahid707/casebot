@@ -23,7 +23,9 @@ export const Header = () => {
                 onClick={() => setOpenDropdown((prev) => !prev)}
                 className="w-9 h-9 rounded-full bg-blue-800 text-white font-semibold text-sm flex items-center justify-center uppercase cursor-pointer relative"
               >
-                {session?.data?.user ? session.data.user.username[0] : "U"}
+                {session?.data?.user.username
+                  ? session.data.user.username[0]
+                  : "U"}
               </button>
             </>
           ) : (

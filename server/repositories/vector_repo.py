@@ -5,20 +5,21 @@ from core.exceptions import AppException
 index = pc.Index("casebot-index")
 
 
-def upsert_vectors(chunks, case_id: int, asset_id: int, file, response):
+def upsert_vectors(chunks, case_id: int, asset_id: int, response):
     vectors = []
 
     for chunk, emb in zip(chunks, response.data):
+
         vectors.append(
             {
                 "id": str(uuid.uuid4()),
                 "values": emb.embedding,
                 "metadata": {
-                    # Typecasting both case_id and asset_id to int to ensure they are stored as integers in Pinecone for better querying and filtering
+                    # Typecasting both case_id and asset_id to int to ensure they are stored as integers in Pinecone for querying and filtering
                     "case_id": int(case_id),
                     "asset_id": int(asset_id),
-                    "file_name": file["filename"],
-                    "page_number": chunk.metadata.get("page", 0),
+                    "source": chunk.metadata.get("source", ""),
+                    "page": chunk.metadata.get("page_number", 0),
                     "text": chunk.page_content,
                 },
             }
@@ -45,12 +46,12 @@ def query_vectors(embedding: list, case_id: int):
         raise AppException(
             message=f"Failed to query vectors: {str(e)}", status_code=500
         )
-
+    print(results["matches"])
     chunks = [
         {
             "text": result["metadata"]["text"],
-            "source": result["metadata"]["file_name"],
-            "page": result["metadata"]["page_number"],
+            "source": result["metadata"]["source"],
+            "page": result["metadata"]["page"],
         }
         for result in results["matches"]
     ]

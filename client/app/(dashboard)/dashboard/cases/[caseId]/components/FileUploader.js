@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import axios from "axios";
 import FilePreview from "./FilePreview";
+import { Upload } from "lucide-react";
 
 export default function FileUploader({ caseId }) {
   const session = useSession();
@@ -78,13 +79,23 @@ export default function FileUploader({ caseId }) {
 
   return (
     <>
-      <button
-        type="button"
+      {/* Drop zone */}
+      <div
         onClick={handleUploadClick}
-        className="flex items-center justify-center rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-zinc-50 shadow-sm transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+        className="cursor-pointer rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 px-6 py-10 text-center hover:border-blue-400 hover:bg-blue-50 transition"
       >
-        Upload case files
-      </button>
+        <Upload className="mx-auto mb-3 text-gray-400" size={28} />
+        <p className="text-sm font-medium text-gray-700">
+          Drag and drop files here
+        </p>
+        <p className="mt-1 text-xs text-gray-500">PDF, DOCX, TXT up to 50MB</p>
+        <button
+          type="button"
+          className="mt-4 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition"
+        >
+          Browse Files
+        </button>
+      </div>
 
       <input
         ref={fileInputRef}
@@ -95,15 +106,11 @@ export default function FileUploader({ caseId }) {
       />
 
       {uploadError && (
-        <p className="mt-3 text-xs text-red-600 dark:text-red-400">
-          {uploadError}
-        </p>
+        <p className="mt-3 text-xs text-red-600">⚠️ {uploadError}</p>
       )}
 
-      <div className="mt-6 text-xs text-zinc-500 dark:text-zinc-400">
-        <p className="font-medium text-zinc-700 dark:text-zinc-200">
-          Files & processing
-        </p>
+      <div className="mt-6 text-xs text-zinc-500">
+        <p className="font-medium text-zinc-700">Files & processing</p>
         <p className="mt-1">
           After uploading, CaseBot will process your documents and use them to
           answer questions in the chat.

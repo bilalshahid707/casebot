@@ -1,6 +1,7 @@
 from sqlmodel import Session, select
 from schemas.user_schemas import CreateUser
 from models.user_model import User, RoleEnum
+from core.exceptions import NotFoundException
 
 
 def create_user(
@@ -22,5 +23,6 @@ def create_user(
 def get_user_by_username(session: Session, username: str):
     stmt = select(User).filter(User.username == username)
     user = session.exec(stmt).first()
-    if user:
-        return user
+    if not user:
+        raise NotFoundException()
+    return user

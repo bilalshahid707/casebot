@@ -30,7 +30,7 @@ export default function CaseTable({ cases }) {
                     caseId={caseItem.id}
                     status={caseItem.status}
                   />
-                  <Link href={`/dashboard/cases/${caseItem.id}`}>
+                  <Link href={`/cases/${caseItem.id}`}>
                     <SquareArrowOutUpRight />
                   </Link>
                 </div>

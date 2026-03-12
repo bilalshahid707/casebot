@@ -3,22 +3,15 @@ import os
 from openai import OpenAI
 from .instructions import system_instructions
 from services import chunk_service as ChunkService
-from pydantic import BaseModel
+from schemas.chat_schemas import ChatResponse
+from core.llm_client import client as LLMClient
 
 load_dotenv()
 
 
-class ResponseModel(BaseModel):
-    response: str
-    citations: list[dict]
-
-
 class ChatAgent:
     def __init__(self):
-        self.client = OpenAI(
-            api_key=os.environ.get("GEMINI_API_KEY"),
-            base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
-        )
+        self.client = LLMClient
         self.model = "gemini-2.5-flash"
 
     def reply(self, message: str, case_id: int):
@@ -44,7 +37,7 @@ class ChatAgent:
                     "content": message,
                 },
             ],
-            response_format=ResponseModel,
+            response_format=ChatResponse,
         )
-
+        print(response.choices[0].message.parsed)
         return response.choices[0].message.parsed

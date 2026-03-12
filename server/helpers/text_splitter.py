@@ -6,50 +6,23 @@ from langchain_core.documents import Document
 from PyPDF2 import PdfReader
 from docx import Document as DocxDocument
 from agents.ocr_agent.agent import OCRAgent
+from helpers.document_parser import parse_file_to_documents
 
 
-async def text_splitter(file) -> List[str]:
+def text_splitter(file) -> List[str]:
 
-    docs = []
+    parsed_documents = parse_file_to_documents(file)
+    langchain_docs = []
 
-    if file["content_type"].startswith("image/"):
-        text = await OCRAgent().extract_text(file)
-        docs.append(Document(page_content=text, metadata={"source": file["filename"]}))
-
-    elif file["content_type"] == "application/pdf":
-        pdf = PdfReader(io.BytesIO(file["content"]))
-        for i in range(len(pdf.pages)):
-            docs.append(
-                Document(
-                    page_content=pdf.pages[i].extract_text() or "",
-                    metadata={"source": file["filename"], "page": i + 1},
-                )
+    # print(parsed_documents)
+    for doc in parsed_documents:
+        langchain_docs.append(
+            Document(
+                page_content=doc.page_content,
+                metadata=doc.model_dump(exclude={"page_content"}, exclude_none=True),
             )
-
-    elif file["content_type"] in (
-        "application/msword",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ):
-        docx = DocxDocument(io.BytesIO(file["content"]))
-        for i, para in enumerate(docx.paragraphs):
-            if para.text.strip():
-                docs.append(
-                    Document(
-                        page_content=para.text,
-                        metadata={"source": file["filename"]},
-                    )
-                )
-
-    elif file["content_type"] in ("text/plain", "text/markdown"):
-        text = file["content"].decode("utf-8")
-        docs.append(Document(page_content=text, metadata={"source": file["filename"]}))
-
-    else:
-        raise ValueError(f"Unsupported file type: {file['content_type']}")
-
-    if not docs:
-        raise ValueError("No text extracted from file")
+        )
 
     splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=150)
-    chunks = splitter.split_documents(docs)
+    chunks = splitter.split_documents(langchain_docs)
     return chunks
