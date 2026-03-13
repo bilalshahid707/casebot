@@ -18,9 +18,6 @@ class ChatAgent:
 
         chunks = ChunkService.retrieve_relevant_chunks(message, case_id)
 
-        if not chunks:
-            return "No relevant case documents found."
-
         response = self.client.chat.completions.parse(
             model=self.model,
             messages=[
