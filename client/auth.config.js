@@ -8,9 +8,13 @@ export const authConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user?.id;
       const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
+      const isOnCases = nextUrl.pathname.startsWith("/cases");
       const isOnSignIn = nextUrl.pathname === "/auth/signin";
 
-      if (isOnDashboard && !isLoggedIn) return false;
+      if (isOnDashboard || (isOnCases && !isLoggedIn)) {
+        Response.redirect(new URL("/auth/signin", nextUrl));
+        return false;
+      }
       if (isOnSignIn && isLoggedIn) {
         return Response.redirect(new URL("/dashboard", nextUrl));
       }

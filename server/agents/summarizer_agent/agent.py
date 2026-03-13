@@ -56,8 +56,8 @@ class SummarizerAgent:
                 text += file["content"].read().decode("utf-8")
         return text
 
-    async def run(self, file_urls, case_id):
-        text = await self.extract_text(file_urls)
+    def run(self, file_urls, case_id):
+        text = self.extract_text(file_urls)
 
         messages = [
             {"role": "system", "content": systemt_instructions},
