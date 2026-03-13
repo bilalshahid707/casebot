@@ -93,6 +93,7 @@ export default function GraphPage({ caseId }) {
   const [graphData, setGraphData] = useState(false);
   const [initialNodes, setInitialNodes] = useState([]);
   const [initialEdges, setInitialEdges] = useState([]);
+  const [error, setError] = useState();
   const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
     initialNodes,
     initialEdges,
@@ -107,7 +108,7 @@ export default function GraphPage({ caseId }) {
   });
 
   // Fetch entities + relationships then build graph
-  const { isFetching, refetch } = useQuery({
+  const { isFetching, refetch, isError } = useQuery({
     queryKey: [caseId, "graph"],
     enabled: false,
     queryFn: async () => {
@@ -121,12 +122,6 @@ export default function GraphPage({ caseId }) {
       const graph = buildGraph(entities, relationships);
       setInitialNodes(graph.nodes);
       setInitialEdges(graph.edges);
-      if (!graph.nodes || !graph.edges) {
-        alert(
-          "No relationships found. You may have not uploaded cases files or extraction is in process. Please try again later",
-        );
-        return;
-      }
       setGraphData(true);
       return graph;
     },
@@ -179,14 +174,27 @@ export default function GraphPage({ caseId }) {
       {/* Graph */}
       <div className="">
         {!graphData ? (
-          <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-            <Network size={40} className="text-gray-300" />
-            <p className="text-sm font-medium text-gray-500">No graph yet</p>
-            <p className="text-xs text-gray-400 max-w-xs">
-              First extract relationships, then generate the graph to visualize
-              entity connections.
-            </p>
-          </div>
+          <>
+            <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+              <Network size={40} className="text-gray-300" />
+              <p className="text-sm font-medium text-gray-500">No graph yet</p>
+              <p className="text-xs text-gray-400 max-w-xs">
+                First extract relationships, then generate the graph to
+                visualize entity connections.
+              </p>
+            </div>
+
+            {isError ? (
+              <div className="flex h-full flex-col items-center bg-red-200 justify-center gap-3 text-center">
+                <p className="text-xs text-red-800 max-w-xs">
+                  No relationships have found yet. You may have not uploaded
+                  files or extraction is in process. Please try again later.
+                </p>
+              </div>
+            ) : (
+              ""
+            )}
+          </>
         ) : (
           <div className="w-3xl h-screen">
             <ReactFlow
