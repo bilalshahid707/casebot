@@ -11,8 +11,11 @@ export const authConfig = {
       const isOnCases = nextUrl.pathname.startsWith("/cases");
       const isOnSignIn = nextUrl.pathname === "/auth/signin";
 
-      if (isOnDashboard || (isOnCases && !isLoggedIn)) {
-        Response.redirect(new URL("/auth/signin", nextUrl));
+      if (isOnDashboard && !isLoggedIn) {
+        return false;
+      }
+
+      if (isOnCases && !isLoggedIn) {
         return false;
       }
       if (isOnSignIn && isLoggedIn) {

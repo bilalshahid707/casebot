@@ -3,6 +3,7 @@ import Sidebar from "./components/Sidebar";
 import Providers from "@/app/providers";
 import { auth, signOut } from "@/auth";
 import "@/app/globals.css";
+import { redirect } from "next/navigation";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -17,6 +18,8 @@ export const metadata = {
 
 export default async function Layout({ children }) {
   const session = await auth();
+
+  if (session.status === "unauthenticated") redirect("/auth/signin");
   return (
     <html lang="en">
       <body className={`${poppins.variable} antialiased bg-white w-full`}>

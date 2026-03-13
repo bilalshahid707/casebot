@@ -20,7 +20,7 @@ export default async function CaseLayout({ children, params }) {
   const { caseId } = await params;
   const session = await auth();
 
-  if (!session) redirect("/auth/signin");
+  if (session.status === "unauthenticated") redirect("/auth/signin");
 
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/cases/${caseId}`,

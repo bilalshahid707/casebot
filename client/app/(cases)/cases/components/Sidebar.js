@@ -21,7 +21,7 @@ export default function Sidebar({ user }) {
           <ul className="space-y-3">
             <li>
               <Link
-                href="/dashboard/cases"
+                href="/dashboard/cases/"
                 className="text-gray-700 hover:text-blue-600 text-sm transition"
               >
                 Workspace
