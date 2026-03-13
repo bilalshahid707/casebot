@@ -59,6 +59,7 @@ const getLayoutedElements = (nodes, edges, direction = "TB") => {
     marginx: 50,
     marginy: 50,
   });
+
   nodes.forEach((node) => {
     dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
   });
@@ -92,7 +93,6 @@ export default function GraphPage({ caseId }) {
   const [graphData, setGraphData] = useState(false);
   const [initialNodes, setInitialNodes] = useState([]);
   const [initialEdges, setInitialEdges] = useState([]);
-  console.log();
   const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
     initialNodes,
     initialEdges,
@@ -115,13 +115,19 @@ export default function GraphPage({ caseId }) {
         axios.get(`${base}/entities`, { headers }),
         axios.get(`${base}/relationships`, { headers }),
       ]);
+
       const entities = entitiesRes.data;
       const relationships = relationshipsRes.data;
       const graph = buildGraph(entities, relationships);
       setInitialNodes(graph.nodes);
       setInitialEdges(graph.edges);
+      if (!graph.nodes || !graph.edges) {
+        alert(
+          "No relationships found. You may have not uploaded cases files or extraction is in process. Please try again later",
+        );
+        return;
+      }
       setGraphData(true);
-      console.log(initialEdges);
       return graph;
     },
   });
