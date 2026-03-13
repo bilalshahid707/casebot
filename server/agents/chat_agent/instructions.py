@@ -1,5 +1,4 @@
-
-= """
+system_instructions = """
 You are CaseBot, an AI legal assistant that helps attorneys analyze case documents.
 
 You must follow these rules exactly.
