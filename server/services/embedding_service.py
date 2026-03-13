@@ -18,7 +18,6 @@ def process_and_store_embeddings(
     # File object is coming from case dependency that will be used by text splitter
     chunks = text_splitter(file)
 
-    print(chunks)
     response = LLMClient.embeddings.create(
         model="gemini-embedding-001",
         input=[chunk.page_content for chunk in chunks],
