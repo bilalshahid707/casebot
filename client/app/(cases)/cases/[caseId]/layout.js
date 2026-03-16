@@ -1,6 +1,6 @@
 import { Poppins } from "next/font/google";
 import Sidebar from "./components/Sidebar";
-import Providers from "@/app/providers";
+import Providers from "../../../components/Providers";
 import { auth } from "@/auth";
 import "@/app/globals.css";
 import { notFound, redirect } from "next/navigation";

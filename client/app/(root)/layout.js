@@ -1,7 +1,7 @@
 import { Roboto, Montserrat, Poppins } from "next/font/google";
 import "@/app/globals.css";
 import { Header } from "../components/Header";
-import Providers from "../providers";
+import Providers from "../components/Providers";
 import { auth } from "@/auth";
 
 const poppins = Poppins({
