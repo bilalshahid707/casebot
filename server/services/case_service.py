@@ -9,7 +9,7 @@ from repositories import case_repo
 from core.s3 import s3
 from services import embedding_service as EmbeddingService
 from helpers.constants import allowed_file_formats
-from core.exceptions import AppException
+from core.exceptions import AppException, ForbiddenException
 from helpers.file_uploader import upload_file_to_s3
 
 load_dotenv()
@@ -18,10 +18,7 @@ load_dotenv()
 def create_case(case_data: CaseCreate, session: Session, current_user):
 
     if current_user.role != "attorney":
-        raise AppException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            message="Only attorneys can create cases",
-        )
+        raise ForbiddenException(message="only attorneys can create case")
 
     return case_repo.create_case(session, case_data, current_user.id)
 
@@ -88,30 +85,3 @@ def process_case_asset(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             message=f"Failed to process file: {str(e)}",
         )
-
-
-def get_case_summary(case_id: int, session: Session):
-    summary = case_repo.get_case_summary(session, case_id)
-    if not summary:
-        raise AppException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            message="Case summary not found",
-        )
-    return summary
-
-
-def upload_case_summary(file_stream, case_id, session: Session, response):
-
-    uploaded_file = upload_file_to_s3(
-        key=f"case_{case_id}_summary.docx",
-        content=file_stream,
-        content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    )
-
-    summary_data = {
-        "case_id": case_id,
-        "content": response.model_dump(),
-        "url": f"{os.environ.get('R2_PUBLIC_URL')}/case_{case_id}_summary.docx",
-    }
-
-    return case_repo.create_summary(session=session, summary_data=summary_data)

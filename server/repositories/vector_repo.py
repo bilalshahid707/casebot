@@ -46,7 +46,6 @@ def query_vectors(embedding: list, case_id: int):
         raise AppException(
             message=f"Failed to query vectors: {str(e)}", status_code=500
         )
-    print(results["matches"])
     chunks = [
         {
             "text": result["metadata"]["text"],

@@ -36,14 +36,3 @@ def get_current_user(
         raise UnauthorizedException(message="Could not validate credentials")
     user = user_repo.get_user_by_username(session=session, username=token_data.username)
     return user
-
-
-def restrict_to(roles: List):
-    def role_checker(
-        current_user: Annotated[user_repo.User, Depends(get_current_user)],
-    ):
-        if current_user.role not in roles:
-            raise ForbiddenException()
-        return current_user
-
-    return role_checker

@@ -1,18 +1,16 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from sqlmodel import Session
-import logging as logger
 from core.database import get_session
 from core.s3 import s3
 from core.exceptions import (
     ForbiddenException,
-    AppException,
 )
 from .auth_dependencies import get_current_user
 from repositories import case_repo
 from helpers.file_uploader import get_file_from_s3
 
 
-def get_owned_case(
+def verify_case_owner(
     case_id: int,
     session: Session = Depends(get_session),
     current_user=Depends(get_current_user),
@@ -25,11 +23,11 @@ def get_owned_case(
     return case
 
 
-def get_asset_with_verification(
+def verify_asset_owner(
     asset_id: int,
     case_id: int,
     session: Session = Depends(get_session),
-    case=Depends(get_owned_case),
+    case=Depends(verify_case_owner),
 ):
     asset = case_repo.get_asset_by_id(session=session, asset_id=asset_id)
 

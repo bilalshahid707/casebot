@@ -1,8 +1,6 @@
 from dotenv import load_dotenv
-import os
-from openai import OpenAI
 from .instructions import system_instructions
-from services import chunk_service as ChunkService
+from services import chunk_service
 from schemas.chat_schemas import ChatResponse
 from core.llm_client import client as LLMClient
 
@@ -16,7 +14,7 @@ class ChatAgent:
 
     def reply(self, message: str, case_id: int):
 
-        chunks = ChunkService.retrieve_relevant_chunks(message, case_id)
+        chunks = chunk_service.retrieve_relevant_chunks(message, case_id)
 
         response = self.client.chat.completions.parse(
             model=self.model,
@@ -36,5 +34,4 @@ class ChatAgent:
             ],
             response_format=ChatResponse,
         )
-        print(response.choices[0].message.parsed)
         return response.choices[0].message.parsed

@@ -1,16 +1,13 @@
 from typing import List
-import io
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
-from PyPDF2 import PdfReader
-from docx import Document as DocxDocument
-from agents.ocr_agent.agent import OCRAgent
 from helpers.document_parser import parse_file_to_documents
 
 
 def text_splitter(file) -> List[str]:
 
+    # Parsing documents to get content according to pages and source
     parsed_documents = parse_file_to_documents(file)
     langchain_docs = []
 

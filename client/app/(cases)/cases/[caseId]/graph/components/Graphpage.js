@@ -49,6 +49,7 @@ function buildGraph(entities, relationships) {
 const nodeWidth = 172;
 const nodeHeight = 36;
 
+// Configuartion from docs
 const getLayoutedElements = (nodes, edges, direction = "TB") => {
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
@@ -74,8 +75,6 @@ const getLayoutedElements = (nodes, edges, direction = "TB") => {
     const nodeWithPosition = dagreGraph.node(node.id);
     const newNode = {
       ...node,
-      // We are shifting the dagre node position (anchor=center center) to the top left
-      // so it matches the React Flow node anchor point (top left).
       position: {
         x: nodeWithPosition.x - nodeWidth / 2,
         y: nodeWithPosition.y - nodeHeight / 2,
@@ -93,7 +92,6 @@ export default function GraphPage({ caseId }) {
   const [graphData, setGraphData] = useState(false);
   const [initialNodes, setInitialNodes] = useState([]);
   const [initialEdges, setInitialEdges] = useState([]);
-  const [error, setError] = useState();
   const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
     initialNodes,
     initialEdges,
@@ -102,12 +100,6 @@ export default function GraphPage({ caseId }) {
   const headers = { Authorization: `Bearer ${session?.accessToken}` };
   const base = `${process.env.NEXT_PUBLIC_API_URL}/cases/${caseId}`;
 
-  // Extract relationships mutation
-  const extractMutation = useMutation({
-    mutationFn: () => axios.get(`${base}/extract-relationships`, { headers }),
-  });
-
-  // Fetch entities + relationships then build graph
   const { isFetching, refetch, isError } = useQuery({
     queryKey: [caseId, "graph"],
     enabled: false,
@@ -138,24 +130,7 @@ export default function GraphPage({ caseId }) {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Step 1 - Extract */}
-          <button
-            onClick={() => extractMutation.mutate()}
-            disabled={extractMutation.isPending}
-            className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition disabled:opacity-60"
-          >
-            {extractMutation.isPending ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
-              <GitFork size={16} />
-            )}
-            {extractMutation.isPending
-              ? "Extracting..."
-              : "Extract Relationships"}
-          </button>
-
-          {/* Step 2 - Generate */}
+        <div className="flex items-center">
           <button
             onClick={() => refetch()}
             disabled={isFetching}
@@ -171,7 +146,6 @@ export default function GraphPage({ caseId }) {
         </div>
       </header>
 
-      {/* Graph */}
       <div className="">
         {!graphData ? (
           <>

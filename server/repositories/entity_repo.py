@@ -26,7 +26,7 @@ def create_entity(
     type: str,
     asset_id,
     aliases: Optional[str] = None,
-) -> Entity:
+) -> Optional[Entity]:
     existing = get_existing_entity(session, name, asset_id=asset_id, case_id=case_id)
     if existing:
         return
@@ -37,9 +37,6 @@ def create_entity(
     session.commit()
     session.refresh(entity)
     return entity
-
-
-# ── Relationship ──────────────────────────────────────────────────────────
 
 
 def create_relationship(
@@ -77,7 +74,7 @@ def create_relationship(
     return rel
 
 
-def get_relationships_by_case_id(session: Session, case_id: int):
+def get_relationships_by_case_id(session: Session, case_id: int) -> list[dict]:
     source = aliased(Entity)
     target = aliased(Entity)
 
@@ -87,7 +84,8 @@ def get_relationships_by_case_id(session: Session, case_id: int):
         .join(target, EntityRelationship.target_entity_id == target.id)
         .where(EntityRelationship.case_id == case_id)
     ).all()
-
+    if not results:
+        raise NotFoundException(message="No entities found")
     return [
         {
             "id": rel.id,
@@ -100,7 +98,7 @@ def get_relationships_by_case_id(session: Session, case_id: int):
     ]
 
 
-def get_entities_by_case_id(session: Session, case_id: int):
+def get_entities_by_case_id(session: Session, case_id: int) -> list[Entity]:
     results = session.exec(select(Entity).where(Entity.case_id == case_id)).all()
 
     if not results:

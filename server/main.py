@@ -60,7 +60,7 @@ def app_exception_handler(request: Request, exc: AppException):
 @app.exception_handler(IntegrityError)
 def handle_unique_constraint_error(request: Request, exc: IntegrityError):
     if isinstance(exc.orig, psycopg2.errors.UniqueViolation):
-        # Safely extract field name — guard against unexpected constraint name formats
+
         constraint_name = exc.orig.diag.constraint_name or ""
         parts = constraint_name.split("_")
         field_name = parts[1] if len(parts) > 1 else constraint_name
@@ -70,7 +70,7 @@ def handle_unique_constraint_error(request: Request, exc: IntegrityError):
                 message=f"{field_name} already exists",
             ).model_dump(),
         )
-    logger.error(f"Unhandled IntegrityError: {exc}")
+
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content=ErrorResponse(
@@ -81,7 +81,6 @@ def handle_unique_constraint_error(request: Request, exc: IntegrityError):
 
 @app.exception_handler(OperationalError)
 def handle_db_connection_error(request: Request, exc: OperationalError):
-    logger.error(f"Database connection error during request: {exc}")
     return JSONResponse(
         status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         content=ErrorResponse(
@@ -94,7 +93,6 @@ def handle_db_connection_error(request: Request, exc: OperationalError):
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     message = "Validation errors:"
     for error in exc.errors():
-        # Guard against missing 'loc' fields (e.g. body-level errors)
         loc = error.get("loc", [])
         field = loc[1] if len(loc) > 1 else loc[0] if loc else "unknown"
         message += f" Field: {field}, Error: {error['msg']}."

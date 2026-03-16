@@ -86,7 +86,6 @@ export default function Fileuploader({ caseId }) {
 
   return (
     <>
-      {/* Drop zone */}
       <div
         onClick={handleUploadClick}
         className="cursor-pointer rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 px-6 py-10 text-center hover:border-blue-400 hover:bg-blue-50 transition"
