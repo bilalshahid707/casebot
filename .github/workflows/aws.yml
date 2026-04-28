@@ -1,0 +1,192 @@
+name: Deploy Backend to EC2
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+
+env:
+  APP_DIR: "apps/api"
+  DEPLOY_DIR: "/opt/FUNDATLAS"
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check if apps/api has changed
+        id: check_changes
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # For manual dispatch, always deploy
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Manual trigger - proceeding with deployment"
+          else
+            # Check if apps/api has changed
+            if git diff --name-only HEAD~1 HEAD | grep -q "^apps/api/"; then
+              echo "changed=true" >> $GITHUB_OUTPUT
+              echo "Changes detected in apps/api - proceeding with deployment"
+            else
+              echo "changed=false" >> $GITHUB_OUTPUT
+              echo "No changes in apps/api - skipping deployment"
+            fi
+          fi
+
+      - name: Configure SSH
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        if: steps.check_changes.outputs.changed == 'true'
+        env:
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+          -o ServerAliveInterval=30 \
+          -o ServerAliveCountMax=10 \
+          -o TCPKeepAlive=yes \
+          -o ConnectTimeout=30 \
+          ${{ env.EC2_USER }}@${{ env.EC2_HOST }} << ENDSSH
+            set -e
+            
+            DEPLOY_DIR="${{ env.DEPLOY_DIR }}"
+            APP_DIR="${{ env.APP_DIR }}"
+            
+            echo "🚀 Starting deployment..."
+            
+            # Create deployment directory if it doesn't exist
+            if [ ! -d "\${DEPLOY_DIR}" ]; then
+              echo "📁 Creating deployment directory..."
+              sudo mkdir -p \${DEPLOY_DIR}
+              sudo chown -R \$USER:\$USER \${DEPLOY_DIR}
+              
+              # Clone repository if first time
+              echo "📥 Cloning repository..."
+              # Use GitHub token if available, otherwise use public clone
+              if [ -n "${{ secrets.GITHUB_TOKEN }}" ]; then
+                git clone https://\${{ secrets.GITHUB_TOKEN }}@github.com/\${{ github.repository }}.git \${DEPLOY_DIR}
+              else
+                git clone https://github.com/\${{ github.repository }}.git \${DEPLOY_DIR}
+              fi
+            fi
+            
+            # Navigate to deployment directory and pull latest changes
+            echo "📥 Pulling latest changes..."
+            echo "\${DEPLOY_DIR}"
+            cd \${DEPLOY_DIR}
+            
+            # Configure git if needed
+            git config --global --add safe.directory \${DEPLOY_DIR} || true
+            
+            # Stash any local changes
+            git stash || true
+            
+            # Fetch and reset to latest
+            git fetch origin
+            CURRENT_BRANCH="dev"
+            git checkout dev || git checkout -b dev origin/dev
+            git reset --hard origin/\${CURRENT_BRANCH}
+            git clean -fd
+
+            git fetch origin
+            
+            # Navigate to API directory
+            cd \${DEPLOY_DIR}/\${APP_DIR}
+            
+            # Ensure .env file exists
+            if [ ! -f ".env" ]; then
+              echo "⚠️  Warning: .env file not found. Please create it manually."
+              echo "   Expected location: \${DEPLOY_DIR}/\${APP_DIR}/.env"
+            fi
+            
+            # Ensure Docker is installed
+            if ! command -v docker &> /dev/null; then
+              echo "🐳 Installing Docker..."
+              curl -fsSL https://get.docker.com -o get-docker.sh
+              sudo sh get-docker.sh
+              sudo usermod -aG docker \$USER
+              rm get-docker.sh
+            fi
+
+            # Pick a Compose command (v2 plugin preferred, fall back to v1).
+            if docker compose version &> /dev/null; then
+              COMPOSE="docker compose"
+            elif command -v docker-compose &> /dev/null; then
+              COMPOSE="docker-compose"
+            else
+              echo "🐳 Installing Docker Compose plugin..."
+              sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-\$(uname -s)-\$(uname -m)" -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+              COMPOSE="docker-compose"
+            fi
+            echo "Using compose command: \${COMPOSE}"
+
+            echo "🛑 Stopping existing services..."
+            \${COMPOSE} down || true
+
+            echo "🔨 Building Docker image..."
+            docker build --progress=plain -t fundatlas-api:latest .
+
+            echo "🚀 Starting services (api, celery-worker, celery-beat)..."
+            \${COMPOSE} up -d
+
+            echo "⏳ Waiting for API to be healthy..."
+            sleep 10
+
+            if docker ps | grep -q fundatlas-api; then
+              echo "✅ API container is running"
+            else
+              echo "❌ API failed to start"
+              \${COMPOSE} logs api
+              exit 1
+            fi
+
+            for i in {1..120}; do
+              if curl -f http://localhost:8000/ > /dev/null 2>&1; then
+                echo "✅ API health check passed"
+                break
+              fi
+              echo "...not ready yet (\$i/120)"
+              sleep 2
+            done
+
+            if ! curl -f http://localhost:8000/ > /dev/null 2>&1; then
+              echo "❌ API health check failed"
+              echo "----- last 200 lines of api logs -----"
+              \${COMPOSE} logs --tail=200 api
+              echo "----- last 100 lines of celery-worker logs -----"
+              \${COMPOSE} logs --tail=100 celery-worker
+              exit 1
+            fi
+
+
+
+            
+            # Clean up old images (keep last 2 versions)
+            echo "🧹 Cleaning up old Docker images..."
+            docker image prune -f
+            
+            echo "✅ Deployment completed successfully!"
+          ENDSSH
+
+      - name: Cleanup
+        if: always() && steps.check_changes.outputs.changed == 'true'
+        run: |
+          rm -f ~/.ssh/deploy_key
+
+      - name: Skip deployment message
+        if: steps.check_changes.outputs.changed == 'false'
+        run: |
+          echo "⏭️  Skipping deployment - no changes detected in apps/api"
